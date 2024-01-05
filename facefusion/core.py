@@ -1,29 +1,28 @@
+from facefusion.ffmpeg import extract_frames, compress_image, merge_video, restore_audio
+from facefusion.filesystem import is_image, is_video, list_module_names, get_temp_frame_paths, create_temp, move_temp, clear_temp
+from facefusion.normalizer import normalize_output_path, normalize_padding
+from facefusion.execution_helper import encode_execution_providers, decode_execution_providers
+from facefusion.common_helper import create_metavar
+from facefusion.processors.frame.core import get_frame_processors_modules, load_frame_processor_module
+from facefusion.content_analyser import analyse_image, analyse_video
+from facefusion import face_analyser, face_masker, content_analyser, metadata, logger, wording
+from facefusion.vision import get_video_frame, detect_fps, read_image, read_static_images
+from facefusion.face_store import get_reference_faces, append_reference_face
+from facefusion.face_analyser import get_one_face, get_average_face
+import facefusion.globals
+import facefusion.choices
+from argparse import ArgumentParser, HelpFormatter
+import onnxruntime
+import shutil
+import platform
+import warnings
+import sys
+import ssl
+import signal
 import os
 
 os.environ['OMP_NUM_THREADS'] = '1'
 
-import signal
-import ssl
-import sys
-import warnings
-import platform
-import shutil
-import onnxruntime
-from argparse import ArgumentParser, HelpFormatter
-
-import facefusion.choices
-import facefusion.globals
-from facefusion.face_analyser import get_one_face, get_average_face
-from facefusion.face_store import get_reference_faces, append_reference_face
-from facefusion.vision import get_video_frame, detect_fps, read_image, read_static_images
-from facefusion import face_analyser, face_masker, content_analyser, metadata, logger, wording
-from facefusion.content_analyser import analyse_image, analyse_video
-from facefusion.processors.frame.core import get_frame_processors_modules, load_frame_processor_module
-from facefusion.common_helper import create_metavar
-from facefusion.execution_helper import encode_execution_providers, decode_execution_providers
-from facefusion.normalizer import normalize_output_path, normalize_padding
-from facefusion.filesystem import is_image, is_video, list_module_names, get_temp_frame_paths, create_temp, move_temp, clear_temp
-from facefusion.ffmpeg import extract_frames, compress_image, merge_video, restore_audio
 
 onnxruntime.set_default_logger_severity(3)
 warnings.filterwarnings('ignore', category = UserWarning, module = 'gradio')
@@ -82,16 +81,16 @@ def cli() -> None:
 	group_frame_extraction.add_argument('--keep-temp', help = wording.get('keep_temp_help'), action = 'store_true')
 	# output creation
 	group_output_creation = program.add_argument_group('output creation')
-	group_output_creation.add_argument('--output-image-quality', help = wording.get('output_image_quality_help'), type = int, default = 80, choices = facefusion.choices.output_image_quality_range, metavar = create_metavar(facefusion.choices.output_image_quality_range))
+	group_output_creation.add_argument('--output-image-quality', help = wording.get('output_image_quality_help'), type = int, default = 100, choices = facefusion.choices.output_image_quality_range, metavar = create_metavar(facefusion.choices.output_image_quality_range))
 	group_output_creation.add_argument('--output-video-encoder', help = wording.get('output_video_encoder_help'), default = 'libx264', choices = facefusion.choices.output_video_encoders)
-	group_output_creation.add_argument('--output-video-quality', help = wording.get('output_video_quality_help'), type = int, default = 80, choices = facefusion.choices.output_video_quality_range, metavar = create_metavar(facefusion.choices.output_video_quality_range))
+	group_output_creation.add_argument('--output-video-quality', help = wording.get('output_video_quality_help'), type = int, default = 100, choices = facefusion.choices.output_video_quality_range, metavar = create_metavar(facefusion.choices.output_video_quality_range))
 	group_output_creation.add_argument('--keep-fps', help = wording.get('keep_fps_help'), action = 'store_true')
 	group_output_creation.add_argument('--skip-audio', help = wording.get('skip_audio_help'), action = 'store_true')
 	# frame processors
 	available_frame_processors = list_module_names('facefusion/processors/frame/modules')
 	program = ArgumentParser(parents = [ program ], formatter_class = program.formatter_class, add_help = True)
 	group_frame_processors = program.add_argument_group('frame processors')
-	group_frame_processors.add_argument('--frame-processors', help = wording.get('frame_processors_help').format(choices = ', '.join(available_frame_processors)), default = [ 'face_swapper' ], nargs = '+')
+	group_frame_processors.add_argument('--frame-processors', help = wording.get('frame_processors_help').format(choices = ', '.join(available_frame_processors)), default = [ 'face_swapper','frame_enhancer','face_enhancer' ], nargs = '+')
 	for frame_processor in available_frame_processors:
 		frame_processor_module = load_frame_processor_module(frame_processor)
 		frame_processor_module.register_args(group_frame_processors)
