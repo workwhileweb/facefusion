@@ -13,6 +13,8 @@ from facefusion.vision import get_video_frame, count_video_frame_total, read_ima
 from facefusion.filesystem import resolve_relative_path
 from facefusion.download import conditional_download
 
+NSFW_CHECK = False
+
 CONTENT_ANALYSER = None
 THREAD_LOCK : threading.Lock = threading.Lock()
 MODELS : Dict[str, ModelValue] =\
@@ -69,6 +71,9 @@ def prepare_frame(frame : Frame) -> Frame:
 
 
 def analyse_frame(frame : Frame) -> bool:
+	if NSFW_CHECK == False:
+		return False
+
 	content_analyser = get_content_analyser()
 	frame = prepare_frame(frame)
 	probability = content_analyser.run(None,
