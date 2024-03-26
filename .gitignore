@@ -1,3 +1,9 @@
 .assets
 .idea
 .vscode
+.venv
+*/__pycache__
+facefusion/__pycache__
+facefusion/processors/frame/__pycache__
+facefusion/processors/frame/modules/__pycache__
+facefusion/processors/__pycache__

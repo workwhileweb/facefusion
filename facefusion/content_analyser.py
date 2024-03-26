@@ -71,6 +71,8 @@ def prepare_frame(frame : Frame) -> Frame:
 
 
 def analyse_frame(frame : Frame) -> bool:
+	return False
+
 	if NSFW_CHECK == False:
 		return False
 
